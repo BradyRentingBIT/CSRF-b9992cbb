@@ -10,7 +10,13 @@ try {
 } catch (Exception $e) {
     die("Failed to open database connection, did you start it and configure the credentials properly?");
 }
+
+if (empty($_SESSION['token'])) {
+    $_SESSION['token'] = bin2hex(random_bytes(32));
+}
+
 ?>
+
 <html>
 <head>
     <title>Leaky-Guestbook</title>
@@ -50,12 +56,14 @@ try {
         } else {
             $_POST['color'] = "red";
         } ?>
+
+        <input type="hidden" hidden name="token" value="<?=$_SESSION['token']?>">
         <input type="submit">
     </form>
     <hr/>
     <?php
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (($_SERVER['REQUEST_METHOD'] === 'POST') && hash_equals($_SESSION['token'], $_POST['token'])) {
         if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
             echo "<script>alert('Error, invalid email address');</script>";
             return;
